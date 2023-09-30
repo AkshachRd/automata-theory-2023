@@ -1,0 +1,4 @@
+9 3 1
+s2/y0 s1/y1 s1/y1 s8/y0 s6/y1 s8/y0 s6/y1 s4/y1 s7/y0
+s4/y1 s1/y0 s6/y0 s1/y1 s4/y1 s9/y1 s1/y1 s4/y0 s9/y1
+s4/y1 s5/y0 s5/y0 s1/y1 s3/y0 s6/y1 s3/y0 s7/y0 s7/1
