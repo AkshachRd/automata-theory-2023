@@ -116,3 +116,19 @@ func (m *Machine) ConvertToMachine(machineType MachineType) error {
 
 	return nil
 }
+
+func (m *Machine) Print(outputFileName string) error {
+	file, err := os.Create(outputFileName)
+	defer file.Close()
+
+	if err != nil {
+		return fmt.Errorf("invalid output file")
+	}
+
+	err = m.Implementation.Print(file)
+	if err != nil {
+		return fmt.Errorf("can't print file: %+v\n", err)
+	}
+
+	return nil
+}

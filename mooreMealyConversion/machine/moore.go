@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"fmt"
 	"mooreMealyConversion/graph"
+	"os"
+	"sort"
 	"strings"
 )
 
@@ -116,4 +118,36 @@ func (m *MooreMachine) Draw(graph graph.IGraph) {
 	for edge, label := range edges {
 		graph.AddEdge(edge.From, edge.To, label)
 	}
+}
+
+func (m *MooreMachine) Print(file *os.File) error {
+	writer := bufio.NewWriter(file)
+
+	var sortedStates []MooreState
+	for state := range m.States {
+		sortedStates = append(sortedStates, state)
+	}
+	sort.Slice(sortedStates, func(i, j int) bool {
+		return sortedStates[i].Name < sortedStates[j].Name
+	})
+
+	outputSymbols := make([]string, 0, len(sortedStates))
+	for _, state := range sortedStates {
+		outputSymbols = append(outputSymbols, string(state.OutputSymbol))
+	}
+	fmt.Fprintln(writer, strings.Join(outputSymbols, " "))
+
+	for _, transition := range m.Transitions {
+		for _, state := range sortedStates {
+			fmt.Fprint(writer, transition[state], " ")
+		}
+
+		fmt.Fprintln(writer)
+	}
+
+	if err := writer.Flush(); err != nil {
+		return err
+	}
+
+	return nil
 }
