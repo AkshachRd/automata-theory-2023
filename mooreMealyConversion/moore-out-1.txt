@@ -1,0 +1,2 @@
+s3/y1 s1/y1 s1/y2 s1/y1 s3/y2 s2/y1
+s6/y1 s2/y1 s2/y2 s2/y1 s6/y2 s5/y1

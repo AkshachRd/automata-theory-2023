@@ -1,0 +1,4 @@
+y0 y1 y0 y0 y0 y1 y0 y0 y1 y0 y1 y0 y1 
+s2 s2 s1 s1 s11 s11 s8 s11 s11 s8 s8 s5 s9 
+s5 s5 s0 s7 s1 s1 s5 s12 s12 s1 s1 s4 s12 
+s5 s5 s6 s6 s1 s1 s3 s8 s8 s3 s3 s9 s10 

@@ -6,29 +6,33 @@ import (
 )
 
 func main() {
-	myMachine, err := machine.ReadMachineFromFile("./mealy.txt")
+	myMachine, err := machine.ReadMachineFromFile("./mealy-in-2.txt")
 	if err != nil {
 		fmt.Println("error reading a machine from file", err)
 		return
 	}
 
-	err = myMachine.Print("test1")
+	err = myMachine.Print("original-machine.txt")
 	if err != nil {
 		fmt.Println("error printing the machine", err)
 		return
 	}
-	myMachine.DrawGraph("test1")
+	myMachine.DrawGraph("original-machine")
 
-	err = myMachine.ConvertToMachine(machine.Moore)
+	if myMachine.Type == machine.Mealy {
+		err = myMachine.ConvertToMachine(machine.Moore)
+	} else {
+		err = myMachine.ConvertToMachine(machine.Mealy)
+	}
 	if err != nil {
 		fmt.Println("error converting the machine to Moore", err)
 		return
 	}
 
-	err = myMachine.Print("test2")
+	err = myMachine.Print("converted-machine.txt")
 	if err != nil {
 		fmt.Println("error printing the machine", err)
 		return
 	}
-	myMachine.DrawGraph("test2")
+	myMachine.DrawGraph("converted-machine")
 }

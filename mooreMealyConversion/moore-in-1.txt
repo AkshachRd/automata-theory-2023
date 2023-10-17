@@ -1,0 +1,4 @@
+6 2 2
+y1 y1 y2 y1 y2 y1
+s3 s1 s1 s1 s3 s2
+s6 s2 s2 s2 s6 s5

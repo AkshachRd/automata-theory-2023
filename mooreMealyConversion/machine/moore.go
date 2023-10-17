@@ -63,7 +63,7 @@ func (m *MooreMachine) ReadFromFile(scanner *bufio.Scanner, statesNum, inputSymb
 		}
 
 		for j, transitionOutputString := range transitionOutputStrings {
-			state := MooreState{OutputSymbol: outputSymbols[j], Name: fmt.Sprintf("s%d", j+1)}
+			state := MooreState{OutputSymbol: outputSymbols[j], Name: fmt.Sprintf("s%d", j)}
 			m.States[state] = true
 
 			m.Transitions[inputSymbol][state] = transitionOutputString
@@ -128,18 +128,33 @@ func (m *MooreMachine) Print(file *os.File) error {
 		sortedStates = append(sortedStates, state)
 	}
 	sort.Slice(sortedStates, func(i, j int) bool {
-		return sortedStates[i].Name < sortedStates[j].Name
+		var n, q int
+		fmt.Sscanf(sortedStates[i].Name, "s%d", &n)
+		fmt.Sscanf(sortedStates[j].Name, "s%d", &q)
+
+		return n < q
 	})
 
-	outputSymbols := make([]string, 0, len(sortedStates))
 	for _, state := range sortedStates {
-		outputSymbols = append(outputSymbols, string(state.OutputSymbol))
+		fmt.Fprint(writer, state.OutputSymbol, " ")
 	}
-	fmt.Fprintln(writer, strings.Join(outputSymbols, " "))
+	fmt.Fprintln(writer)
 
-	for _, transition := range m.Transitions {
+	var transitionInputSymbols []Symbol
+	for inputSymbol, _ := range m.Transitions {
+		transitionInputSymbols = append(transitionInputSymbols, inputSymbol)
+	}
+	sort.Slice(transitionInputSymbols, func(i, j int) bool {
+		var n, q int
+		fmt.Sscanf(string(transitionInputSymbols[i]), "x%d", &n)
+		fmt.Sscanf(string(transitionInputSymbols[j]), "x%d", &q)
+
+		return n < q
+	})
+
+	for _, inputSymbol := range transitionInputSymbols {
 		for _, state := range sortedStates {
-			fmt.Fprint(writer, transition[state], " ")
+			fmt.Fprint(writer, m.Transitions[inputSymbol][state], " ")
 		}
 
 		fmt.Fprintln(writer)

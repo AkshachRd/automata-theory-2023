@@ -56,7 +56,7 @@ func (m *MealyMachine) ReadFromFile(scanner *bufio.Scanner, statesNum, inputSymb
 					"error reading transition output of mealy machine: it must have both state and output symbol")
 			}
 
-			state := MealyState{Name: fmt.Sprintf("s%d", j+1)}
+			state := MealyState{Name: fmt.Sprintf("s%d", j)}
 			m.States[state] = true
 
 			m.Transitions[inputSymbol][state] = MealyTransitionOutput{
