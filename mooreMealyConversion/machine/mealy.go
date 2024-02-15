@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"mooreMealyConversion/graph"
 	"os"
+	"reflect"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -126,4 +128,155 @@ func (m *MealyMachine) Print(file *os.File) error {
 	}
 
 	return nil
+}
+
+type MealyPartition []MealyState
+
+func (m *MealyMachine) Minimize() error {
+	partitions := m.getInitialPartitions()
+
+	for {
+		newPartitions := m.calculatePartitions(partitions)
+
+		if reflect.DeepEqual(newPartitions, partitions) {
+			break
+		}
+
+		partitions = newPartitions
+	}
+
+	m.partitionsToMachine(partitions);
+
+	return nil
+}
+
+func (m *MealyMachine) partitionsToMachine(partitions []MealyPartition) {
+	newStates := make(map[MealyState]bool)
+	newTransitions := make(Transitions[MealyTransition])
+	for inputSymbol := range m.Transitions {
+		newTransitions[inputSymbol] = make(MealyTransition)
+	}
+	statesToNewStates := make(map[MealyState]MealyState)
+
+	for _, partition := range partitions {
+		name := ""
+		for i, state := range partition {
+			name += state.Name
+			if i != len(partition) - 1 {
+				name += ","
+			}
+		}
+		state := MealyState{Name: name}
+		newStates[state] = true
+
+		for _, oldState := range partition {
+			statesToNewStates[oldState] = state
+		}
+	}
+
+	for _, partition := range partitions {
+		name := ""
+		for i, state := range partition {
+			name += state.Name
+			if i != len(partition) - 1 {
+				name += ","
+			}
+		}
+		state := MealyState{Name: name}
+
+		for inputSymbol, transition := range m.Transitions {
+			newTransition := MealyTransitionOutput{
+				State:        statesToNewStates[transition[partition[0]].State],
+				OutputSymbol: transition[partition[0]].OutputSymbol,
+			}
+
+			newTransitions[inputSymbol][state] = newTransition
+		}
+	}
+
+	m.States = newStates
+	m.Transitions = newTransitions
+	m.CurrentState = MealyState{Name: "q0"}
+}
+
+func (m *MealyMachine) getInitialPartitions() []MealyPartition {
+	var partitions []MealyPartition
+
+	nextPartitionIndex := 0
+	outputSymbolsVariants := make(map[string]int)
+	var outputSymbolsVariant string
+
+	for state := range m.States {
+		outputSymbolsVariant = ""
+		for _, transition := range m.Transitions {
+			outputSymbolsVariant += string(transition[state].OutputSymbol)
+		}
+
+		if partitionIndex, ok := outputSymbolsVariants[outputSymbolsVariant]; !ok {
+			partitions = append(partitions, MealyPartition{state})
+			outputSymbolsVariants[outputSymbolsVariant] = nextPartitionIndex
+			nextPartitionIndex++
+		} else {
+			partitions[partitionIndex] = append(partitions[partitionIndex], state)
+		}
+	}
+
+	return partitions
+}
+
+func (m *MealyMachine) calculatePartitions(partitions []MealyPartition) []MealyPartition {
+	var newPartitions []MealyPartition
+
+	for i := 0; i < len(partitions); i++ {
+		partition := partitions[i]
+		var newPartition MealyPartition
+		var restPartition MealyPartition
+
+		for _, state := range partition {
+			if len(newPartition) == 0 {
+				newPartition = append(newPartition, state)
+				continue
+			}
+
+			if m.checkIfInSamePartition(partitions, newPartition[0], state) {
+				newPartition = append(newPartition, state)
+			} else {
+				restPartition = append(restPartition, state)
+			}
+		}
+
+		if len(newPartition) > 0 {
+			newPartitions = append(newPartitions, newPartition)
+		}
+
+		if len(restPartition) > 0 {
+			partitions = append(partitions, restPartition)
+		}
+	}
+
+	return newPartitions
+}
+
+
+func (m *MealyMachine) checkIfInSamePartition(partitions []MealyPartition, first, second MealyState) bool {
+	inSamePartition := true
+
+	for _, transition := range m.Transitions {
+		transitionOutputFirst := transition[first]
+		transitionOutputSecond := transition[second]
+
+		transitionInSamePartition := false
+		for _, partition := range partitions {
+			if slices.Contains(partition, transitionOutputFirst.State) && slices.Contains(partition, transitionOutputSecond.State) {
+				transitionInSamePartition = true
+			}
+		}
+
+		if !transitionInSamePartition {
+			inSamePartition = false
+			break
+		}
+	}
+
+	return inSamePartition
 }

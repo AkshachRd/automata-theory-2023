@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"mooreMealyConversion/graph"
 	"os"
+	"reflect"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -141,7 +143,7 @@ func (m *MooreMachine) Print(file *os.File) error {
 	fmt.Fprintln(writer)
 
 	var transitionInputSymbols []Symbol
-	for inputSymbol, _ := range m.Transitions {
+	for inputSymbol := range m.Transitions {
 		transitionInputSymbols = append(transitionInputSymbols, inputSymbol)
 	}
 	sort.Slice(transitionInputSymbols, func(i, j int) bool {
@@ -165,4 +167,147 @@ func (m *MooreMachine) Print(file *os.File) error {
 	}
 
 	return nil
+}
+
+type MoorePartition []string
+
+func (m *MooreMachine) Minimize() error {
+	partitions := m.getInitialPartitions()
+
+	for {
+		newPartitions := m.calculatePartitions(partitions)
+
+		if reflect.DeepEqual(newPartitions, partitions) {
+			break
+		}
+
+		partitions = newPartitions
+	}
+
+	m.partitionsToMachine(partitions);
+
+	return nil
+}
+
+func (m *MooreMachine) partitionsToMachine(partitions []MoorePartition) {
+	newStates := make(map[MooreState]bool)
+	newTransitions := make(Transitions[MooreTransition])
+	for inputSymbol := range m.Transitions {
+		newTransitions[inputSymbol] = make(MooreTransition)
+	}
+	oldStatesToNewStates := make(map[MooreState]MooreState)
+
+	for _, partition := range partitions {
+		state := MooreState{Name: strings.Join(partition, ","), OutputSymbol: m.findStateByName(partition[0]).OutputSymbol}
+		newStates[state] = true
+
+		for _, oldStateName := range partition {
+			oldStatesToNewStates[m.findStateByName(oldStateName)] = state
+		}
+	}
+
+	for _, partition := range partitions {
+		state := MooreState{Name: strings.Join(partition, ","), OutputSymbol: m.findStateByName(partition[0]).OutputSymbol}
+
+		for inputSymbol, transition := range m.Transitions {
+			oldState := m.findStateByName(transition[m.findStateByName(partition[0])])
+
+			newTransitions[inputSymbol][state] = oldStatesToNewStates[oldState].Name
+		}
+	}
+
+	m.States = newStates
+	m.Transitions = newTransitions
+	m.CurrentState = MooreState{Name: "q0", OutputSymbol: m.CurrentState.OutputSymbol}
+}
+
+func (m *MooreMachine) getInitialPartitions() []MoorePartition {
+	var partitions []MoorePartition
+
+	partitionsMap := make(map[Symbol]MoorePartition)
+
+	for state := range m.States {
+		partitionsMap[state.OutputSymbol] = append(partitionsMap[state.OutputSymbol], state.Name)
+	}
+
+	for _, partition := range partitionsMap {
+		partitions = append(partitions, partition)
+	}
+
+	return partitions
+}
+
+func (m *MooreMachine) calculatePartitions(partitions []MoorePartition) []MoorePartition {
+	var newPartitions []MoorePartition
+
+	for i := 0; i < len(partitions); i++ {
+		partition := partitions[i]
+		var newPartition MoorePartition
+		var restPartition MoorePartition
+
+		for _, stateName := range partition {
+			if len(newPartition) == 0 {
+				newPartition = append(newPartition, stateName)
+				continue
+			}
+
+			if m.checkIfInSamePartition(partitions, newPartition[0], stateName) {
+				newPartition = append(newPartition, stateName)
+			} else {
+				restPartition = append(restPartition, stateName)
+			}
+		}
+
+		if len(newPartition) > 0 {
+			newPartitions = append(newPartitions, newPartition)
+		}
+
+		if len(restPartition) > 0 {
+			partitions = append(partitions, restPartition)
+		}
+	}
+
+	return newPartitions
+}
+
+func (m *MooreMachine) checkIfInSamePartition(partitions []MoorePartition, firstName, secondName string) bool {
+	inSamePartition := true
+
+	for _, transition := range m.Transitions {
+		mooreStateFirst := MooreState{Name: transition[m.findStateByName(firstName)]}
+		mooreStateSecond := MooreState{Name: transition[m.findStateByName(secondName)]}
+
+		for state := range m.States {
+			if state.Name == mooreStateFirst.Name {
+				mooreStateFirst = state
+			}
+			if state.Name == mooreStateSecond.Name {
+				mooreStateSecond = state
+			}
+		}
+
+		transitionInSamePartition := false
+		for _, partition := range partitions {
+			if slices.Contains(partition, mooreStateFirst.Name) && slices.Contains(partition, mooreStateSecond.Name) {
+				transitionInSamePartition = true
+			}
+		}
+
+		if !transitionInSamePartition {
+			inSamePartition = false
+			break
+		}
+	}
+
+	return inSamePartition
+}
+
+func (m *MooreMachine) findStateByName(name string) MooreState {
+	for state := range m.States {
+		if state.Name == name {
+			return state
+		}
+	}
+
+	return MooreState{}
 }

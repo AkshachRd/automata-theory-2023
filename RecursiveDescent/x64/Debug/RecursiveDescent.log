@@ -1,0 +1,4 @@
+﻿  main.cpp
+D:\automata-theory-2023\RecursiveDescent\main.cpp(45): warning C4717: B: рекурсия на всех путях выполнения, функция вызовет переполнение стека
+D:\automata-theory-2023\RecursiveDescent\main.cpp(36): warning C4717: A: рекурсия на всех путях выполнения, функция вызовет переполнение стека
+  RecursiveDescent.vcxproj -> D:\automata-theory-2023\RecursiveDescent\x64\Debug\RecursiveDescent.exe
