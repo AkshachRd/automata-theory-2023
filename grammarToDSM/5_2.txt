@@ -1,0 +1,4 @@
+right
+S -> aA | aB | bA
+A -> bS
+B -> aS | bB | #H

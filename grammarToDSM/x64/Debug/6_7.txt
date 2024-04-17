@@ -1,0 +1,3 @@
+S -> Sb | Aa | Ha | Hb
+A -> Aa | Sb | Ha
+A -> =

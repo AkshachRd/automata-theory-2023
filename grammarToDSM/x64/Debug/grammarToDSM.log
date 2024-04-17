@@ -1,0 +1,5 @@
+﻿  ReadWriteTable.cpp
+  grammarToDSM.cpp
+C:\Users\79027\Desktop\TAaFL\lab3\grammarToDSM\grammarToDSM.cpp(240,38): warning C4267: =: преобразование из "size_t" в "int"; возможна потеря данных
+  Создание кода...
+  grammarToDSM.vcxproj -> C:\Users\79027\Desktop\TAaFL\lab3\grammarToDSM\x64\Debug\grammarToDSM.exe

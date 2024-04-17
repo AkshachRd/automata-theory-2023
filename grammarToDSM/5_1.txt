@@ -1,0 +1,4 @@
+right
+S -> 0S | 0B
+B -> 1B | 1C
+C -> 1C | #H
